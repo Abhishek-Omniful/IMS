@@ -24,6 +24,7 @@ CREATE TABLE tenants (
 -- Create Hub Table
 CREATE TABLE hubs (
     id BIGSERIAL PRIMARY KEY,
+    --If a tenant is deleted from the tenants table, then all hubs rows linked to that tenant are automatically deleted.
     tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     manager_name TEXT NOT NULL,
     manager_contact TEXT NOT NULL,

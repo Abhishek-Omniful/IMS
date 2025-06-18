@@ -1,4 +1,4 @@
-package context
+package mycontext
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func init() {
 		panic(err)
 	}
 
-	ctx, err = config.TODOContext()
+	ctx, err = config.TODOContext() //global context
 	if err != nil {
 		log.Panicf("Failed to create context: %v", err)
 	}

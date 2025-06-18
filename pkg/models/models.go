@@ -1,5 +1,14 @@
 package models
 
+import (
+	"context"
+	"log"
+
+	"github.com/Abhishek-Omniful/IMS/mycontext"
+	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
+	"github.com/omniful/go_commons/db/sql/postgres"
+)
+
 type Category struct {
 	ID           int64  `json:"id"`
 	CategoryName string `json:"category_name"`
@@ -71,5 +80,115 @@ type ValidationResponse struct {
 	Error   error
 }
 
+var db *postgres.DbCluster
+var ctx context.Context
 
+func init() {
+	db = appinit.GetDB()
+	if db == nil {
+		log.Panic("Failed to connect to the database")
+	}
+	log.Println("Connected to the database successfully")
+	// migrations.RunMigration() only once
+	ctx = mycontext.GetContext()
+}
 
+// hubs
+func GetHubs() (*[]Hub, error) {
+	var hubs []Hub
+	result := db.GetMasterDB(ctx).Find(&hubs)
+	return &hubs, result.Error
+
+}
+
+func CreateHub(hub *Hub) (*Hub, error) {
+	result := db.GetMasterDB(ctx).Create(hub)
+	return hub, result.Error
+}
+
+func DeleteHub(id int64) (*Hub, error) {
+	var hub Hub
+	result := db.GetMasterDB(ctx).Where("id = ?", id).Find(&hub)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	deleteError := db.GetMasterDB(ctx).Delete(&hub).Error
+	if deleteError != nil {
+		return nil, deleteError
+	}
+	return &hub, result.Error
+}
+
+func UpdateHub(hub *Hub) (*Hub, error) {
+	result := db.GetMasterDB(ctx).Save(hub)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return hub, nil
+}
+
+// tenants
+func GetTenants() (*[]Tenant, error) {
+	var tenants []Tenant
+	result := db.GetMasterDB(ctx).Find(&tenants)
+	return &tenants, result.Error
+}
+
+func CreateTenant(tenant *Tenant) (*Tenant, error) {
+	result := db.GetMasterDB(ctx).Create(tenant)
+	return tenant, result.Error
+}
+
+func DeleteTenant(id int64) (*Tenant, error) {
+	var tenant Tenant
+	result := db.GetMasterDB(ctx).Where("id = ?", id).Find(&tenant)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	delErr := db.GetMasterDB(ctx).Delete(&tenant).Error
+	if delErr != nil {
+		return nil, delErr
+	}
+	return &tenant, nil
+}
+
+func UpdateTenant(tenant *Tenant) (*Tenant, error) {
+	result := db.GetMasterDB(ctx).Save(tenant)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return tenant, nil
+}
+
+// skus
+func GetSKUs() (*[]SKU, error) {
+	var skus []SKU
+	result := db.GetMasterDB(ctx).Find(&skus)
+	return &skus, result.Error
+}
+
+func CreateSKU(sku *SKU) (*SKU, error) {
+	result := db.GetMasterDB(ctx).Create(sku)
+	return sku, result.Error
+}
+
+func DeleteSKU(id int64) (*SKU, error) {
+	var sku SKU
+	result := db.GetMasterDB(ctx).Where("id = ?", id).Find(&sku)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	deleteError := db.GetMasterDB(ctx).Delete(&sku).Error
+	if deleteError != nil {
+		return nil, deleteError
+	}
+	return &sku, result.Error
+}
+
+func UpdateSKU(sku *SKU) (*SKU, error) {
+	result := db.GetMasterDB(ctx).Save(sku)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return sku, nil
+}

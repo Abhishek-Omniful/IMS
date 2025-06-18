@@ -32,6 +32,15 @@ func Initialize(s *http.Server) {
 			skus.PUT("/:id", controllers.UpdateSKU)
 			skus.DELETE("/:id", controllers.DeleteSKU)
 		}
+		// tenants
+		tenants := v1.Group("/tenants")
+		{
+			tenants.GET("", controllers.GetTenants)
+			tenants.POST("", controllers.CreateTenant)
+			tenants.PUT("/:id", controllers.UpdateTenant)
+			tenants.DELETE("/:id", controllers.DeleteTenant)
+		}
+
 	}
 
 }

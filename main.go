@@ -4,26 +4,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Abhishek-Omniful/IMS/context"
-	"github.com/Abhishek-Omniful/IMS/migrations"
-	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
+	"github.com/Abhishek-Omniful/IMS/mycontext"
+
 	"github.com/Abhishek-Omniful/IMS/pkg/routes"
 	"github.com/omniful/go_commons/config"
 	"github.com/omniful/go_commons/http"
 )
 
-func init() {
-	db := appinit.GetDB()
-	if db == nil {
-		log.Panic("Failed to connect to the database")
-	}
-	log.Println("Connected to the database successfully")
-	migrations.RunMigration()
-}
-
 func main() {
 
-	ctx := context.GetContext()
+	ctx := mycontext.GetContext()
 
 	server := http.InitializeServer(
 		config.GetString(ctx, "server.port"), // Port to listen

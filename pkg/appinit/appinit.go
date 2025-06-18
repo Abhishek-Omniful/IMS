@@ -4,14 +4,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Abhishek-Omniful/IMS/context"
+	"github.com/Abhishek-Omniful/IMS/mycontext"
 	"github.com/omniful/go_commons/config"
 	"github.com/omniful/go_commons/db/sql/postgres"
 	"github.com/omniful/go_commons/redis"
 )
 
 func ConnectDB() *postgres.DbCluster {
-	ctx := context.GetContext()
+	ctx := mycontext.GetContext()
 	myHost := config.GetString(ctx, "postgresql.master.host")
 	myPort := config.GetString(ctx, "postgresql.master.port")
 	myUsername := config.GetString(ctx, "postgresql.master.username")
