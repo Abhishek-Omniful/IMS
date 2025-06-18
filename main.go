@@ -1,18 +1,40 @@
 package main
 
 import (
-	"github.com/omniful/go_commons/log"
+	"log"
+	"time"
+
+	"github.com/Abhishek-Omniful/IMS/context"
+	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
+	"github.com/Abhishek-Omniful/IMS/pkg/routes"
+	"github.com/omniful/go_commons/config"
+	"github.com/omniful/go_commons/http"
 )
+
+func init() {
+	db := appinit.GetDB()
+	if db == nil {
+		log.Panic("Failed to connect to the database")
+	}
+	log.Println("Connected to the database successfully")
+}
 
 func main() {
 
-	log.Infof("OMS service is starting up...")
+	ctx := context.GetContext()
 
-	// Example logs at various levels
-	log.Debugf("This is a debug message: %v", "debug-info")
-	log.Warnf("This is a warning!")
-	log.Errorf("This is an error log with code %d", 500)
+	server := http.InitializeServer(
+		config.GetString(ctx, "server.port"), // Port to listen
+		10*time.Second,                       // Read timeout
+		10*time.Second,                       // Write timeout
+		70*time.Second,                       // Idle timeout
+		false,
+	)
 
-	// Normally you'd start server / worker here
-	// server.Start()
+	routes.Initialize(server)
+	err := server.StartServer("ims-service")
+	if err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
+
 }

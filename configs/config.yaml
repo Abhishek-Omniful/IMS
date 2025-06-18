@@ -1,0 +1,19 @@
+server:
+  port: ":8080"
+
+postgresql:
+  debugMode: true
+  database: "imsDB"
+  maxOpenConns: 10
+  maxIdleConns: 2
+  connMaxLifetime: 10
+  master:
+    host: "localhost"
+    port: "5432"
+    username: "postgres"
+    password: "arun196821803001"
+  slaves:
+    hosts: "localhost"
+    port: "5432"
+    username: "postgres"
+    password: "arun196821803001"
