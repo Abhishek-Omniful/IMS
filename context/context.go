@@ -12,7 +12,7 @@ var ctx context.Context
 
 func init() {
 	//mandatory to call config.init() before using the context
-	err := config.Init(time.Second * 10)
+	err := config.Init(time.Second * 10) // this helps to load the config file (yaml)
 	if err != nil {
 		log.Panicf("Error while initialising config, err: %v", err)
 		panic(err)
