@@ -196,7 +196,6 @@ func DeleteTenant(c *gin.Context) {
 }
 
 // skus
-
 func GetSKUs(c *gin.Context) {
 	skus, err := models.GetSKUs()
 	if err != nil {
@@ -284,5 +283,157 @@ func UpdateSKU(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "SKU updated successfully",
 		"sku":     sku,
+	})
+}
+
+// sellers
+func GetSellers(c *gin.Context) {
+	sellers, err := models.GetSellers()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to fetch sellers"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"sellers": sellers})
+}
+
+func CreateSeller(c *gin.Context) {
+	var seller = &models.Seller{}
+	err := c.ShouldBindJSON(seller)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind seller JSON"})
+		return
+	}
+
+	seller, err = models.CreateSeller(seller)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create seller"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Seller created successfully",
+		"seller":  seller,
+	})
+}
+
+func UpdateSeller(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid seller ID"})
+		return
+	}
+
+	var seller = &models.Seller{}
+	err = c.ShouldBindJSON(seller)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind seller JSON"})
+		return
+	}
+
+	seller.ID = id
+	seller, err = models.UpdateSeller(seller)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update seller"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Seller updated successfully",
+		"seller":  seller,
+	})
+}
+
+func DeleteSeller(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid seller ID"})
+		return
+	}
+
+	seller, err := models.DeleteSeller(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete seller"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Seller deleted successfully",
+		"seller":  seller,
+	})
+}
+
+// products
+func GetProducts(c *gin.Context) {
+	products, err := models.GetProducts()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to fetch products"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"products": products})
+}
+
+func CreateProduct(c *gin.Context) {
+	var product = &models.Product{}
+	err := c.ShouldBindJSON(product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind product JSON"})
+		return
+	}
+
+	product, err = models.CreateProduct(product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create product"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product created successfully",
+		"product": product,
+	})
+}
+
+func UpdateProduct(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	var product = &models.Product{}
+	err = c.ShouldBindJSON(product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind product JSON"})
+		return
+	}
+
+	product.ID = id
+	product, err = models.UpdateProduct(product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product updated successfully",
+		"product": product,
+	})
+}
+
+func DeleteProduct(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	product, err := models.DeleteProduct(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product deleted successfully",
+		"product": product,
 	})
 }

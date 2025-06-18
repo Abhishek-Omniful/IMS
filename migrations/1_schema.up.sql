@@ -9,7 +9,8 @@ CREATE TABLE products (
     id BIGSERIAL PRIMARY KEY,
     product_name TEXT NOT NULL,
     general_description TEXT,
-    category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE CASCADE
+    category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    seller_id BIGINT NOT NULL REFERENCES sellers(id) ON DELETE CASCADE
 );
 
 -- Create Tenant Table
