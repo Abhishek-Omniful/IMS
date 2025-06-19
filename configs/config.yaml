@@ -1,5 +1,10 @@
 server:
   port: ":8080"
+  name: "ims-service"
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 70s
+
 
 postgresql:
   debugMode: true

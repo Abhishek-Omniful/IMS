@@ -2,11 +2,14 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/Abhishek-Omniful/IMS/mycontext"
 	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
 	"github.com/omniful/go_commons/db/sql/postgres"
+	"github.com/omniful/go_commons/redis"
 )
 
 type Category struct {
@@ -83,6 +86,7 @@ type ValidationResponse struct {
 
 var db *postgres.DbCluster
 var ctx context.Context
+var redisClient *redis.Client
 
 func init() {
 	db = appinit.GetDB()
@@ -91,7 +95,11 @@ func init() {
 	}
 	log.Println("Connected to the database successfully")
 	// migrations.RunMigration() only once
+
 	ctx = mycontext.GetContext()
+
+	redisClient = appinit.GetRedis()
+	log.Println("Connected to Redis successfully")
 }
 
 // hubs
@@ -262,4 +270,65 @@ func DeleteProduct(id int64) (*Product, error) {
 		return nil, delErr
 	}
 	return &product, nil
+}
+
+func Validator(hubid int64, skuid int64) bool {
+	var sku SKU
+	result := db.GetMasterDB(ctx).Where("id=? and hub_id=?", skuid, hubid).First(&sku)
+	if result.Error != nil {
+		log.Println("Error occred while validation of hub and sku")
+		return false
+	}
+	if sku == (SKU{}) {
+		log.Println("Invalid pair")
+		return false
+	}
+	return true
+}
+
+// validate order
+func ValidateOrder(order *ValidateOrderRequest) bool {
+	hubid := order.HubID
+	skuid := order.SKUID
+
+	hubIDInt64, err := strconv.ParseInt(hubid, 10, 64)
+
+	if err != nil {
+		log.Printf("Error parsing hub ID: %v", err)
+		return false
+	}
+	skuIDInt64, err := strconv.ParseInt(skuid, 10, 64)
+	if err != nil {
+		log.Printf("Error parsing SKU ID: %v", err)
+		return false
+	}
+
+	// Compose a Redis key like "hub:123:sku:456"
+	redisKey := fmt.Sprintf("hub:%s:sku:%s", hubid, skuid)
+
+	// Check in Redis
+	val, err := redisClient.Get(ctx, redisKey)
+	log.Println("Checking Redis for validation:", redisKey)
+	if err == nil && val == "valid" {
+		log.Println("Order validated from Redis cache.")
+		return true
+	}
+
+	isValid := Validator(hubIDInt64, skuIDInt64)
+
+	if isValid {
+		storeRedis(hubid, skuid)
+		return true
+	}
+	return false
+
+}
+
+func storeRedis(hubID string, skuID string) {
+	key := fmt.Sprintf("hub:%s:sku:%s", hubID, skuID)
+	ok, err := redisClient.Set(ctx, key, "valid", 0)
+	if err != nil || !ok {
+		log.Panicf("Failed to store validation for hub %s and sku %s in Redis", hubID, skuID)
+	}
+	log.Printf("Stored validation for hub %s and sku %s in Redis", hubID, skuID)
 }

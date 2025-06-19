@@ -437,3 +437,36 @@ func DeleteProduct(c *gin.Context) {
 		"product": product,
 	})
 }
+
+// validate SKU and HUB
+func ValidateOrderRequest(c *gin.Context) {
+	var skusAndHubs = models.ValidateOrderRequest{}
+	var validationResponse = &models.ValidationResponse{}
+
+	err := c.ShouldBindBodyWithJSON(&skusAndHubs) //json bytes ->  struct (unmarshall)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to parse request ",
+		})
+		return
+	}
+	isValidOrder := models.ValidateOrder(&skusAndHubs)
+
+	if !isValidOrder {
+		validationResponse.IsValid = false
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":              "Order validation failed",
+			"validationResponse": validationResponse,
+		})
+		return
+	}
+
+	validationResponse.IsValid = true
+	validationResponse.Error = nil
+	c.JSON(http.StatusOK, gin.H{
+		"message":            "Order validation successful",
+		"validationResponse": validationResponse,
+	})
+
+}

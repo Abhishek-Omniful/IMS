@@ -44,11 +44,13 @@ func ConnectDB() *postgres.DbCluster {
 
 func ConnectRedis() *redis.Client {
 	config := &redis.Config{
-		Hosts:       []string{"localhost:6379"},
+		Hosts:       []string{"127.0.0.1:6379"},
 		PoolSize:    50,
 		MinIdleConn: 10,
+		DB:          0,
 	}
 	client := redis.NewClient(config)
+	log.Println("Connecting to Redis...")
 	return client
 }
 
@@ -56,7 +58,7 @@ func GetDB() *postgres.DbCluster {
 	db := ConnectDB()
 	return db
 }
-	
+
 func GetRedis() *redis.Client {
 	rds := ConnectRedis()
 	return rds

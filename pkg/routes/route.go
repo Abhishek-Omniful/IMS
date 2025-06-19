@@ -13,7 +13,7 @@ func Initialize(s *http.Server) {
 		//validators
 		orders := v1.Group("/validators")
 		{
-			orders.POST("/validate_order", controllers.ValidateHubAndSKU)
+			orders.POST("/validate_order", controllers.ValidateOrderRequest)
 			orders.POST("/validate_inventory", controllers.ValidateAndUpdateInventory)
 		}
 		//hubs
@@ -39,6 +39,24 @@ func Initialize(s *http.Server) {
 			tenants.POST("", controllers.CreateTenant)
 			tenants.PUT("/:id", controllers.UpdateTenant)
 			tenants.DELETE("/:id", controllers.DeleteTenant)
+		}
+
+		//products
+		products := v1.Group("/products")
+		{
+			products.GET("", controllers.GetProducts)
+			products.POST("", controllers.CreateProduct)
+			products.PUT("/:id", controllers.UpdateProduct)
+			products.DELETE("/:id", controllers.DeleteProduct)
+		}
+
+		//sellers
+		sellers := v1.Group("/sellers")
+		{
+			sellers.GET("", controllers.GetSellers)
+			sellers.POST("", controllers.CreateSeller)
+			sellers.PUT("/:id", controllers.UpdateSeller)
+			sellers.DELETE("/:id", controllers.DeleteSeller)
 		}
 
 	}

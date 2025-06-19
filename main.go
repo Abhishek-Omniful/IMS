@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"time"
+	
 
 	"github.com/Abhishek-Omniful/IMS/mycontext"
 
@@ -17,14 +17,14 @@ func main() {
 
 	server := http.InitializeServer(
 		config.GetString(ctx, "server.port"), // Port to listen
-		10*time.Second,                       // Read timeout
-		10*time.Second,                       // Write timeout
-		70*time.Second,                       // Idle timeout
+		config.GetDuration(ctx, "server.read_timeout"),                       // Read timeout
+		config.GetDuration(ctx, "server.write_timeout"),                       // Write timeout
+		config.GetDuration(ctx, "server.idle_timeout"),                       // Idle timeout
 		false,
 	)
 
 	routes.Initialize(server)
-	err := server.StartServer("ims-service")
+	err := server.StartServer(config.GetString(ctx, "server.name"))
 	if err != nil {
 		log.Fatal("Failed to start server: ", err)
 	}
