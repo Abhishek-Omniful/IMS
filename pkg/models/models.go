@@ -282,11 +282,7 @@ func DeleteProduct(id int64) (*Product, error) {
 func Validator(hubid int64, skuid int64) bool {
 	var inv Inventory
 	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuid, hubid).First(&inv).Error
-	if err != nil {
-		return false
-	}
-	return true
-	// Check if the inventory has sufficient quantity
+	return err == nil
 }
 
 // inventory
