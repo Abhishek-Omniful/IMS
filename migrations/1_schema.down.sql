@@ -7,3 +7,4 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS validate_order_requests;
 DROP TABLE IF EXISTS validation_responses;
+DROP TABLE IF EXISTS inventory;

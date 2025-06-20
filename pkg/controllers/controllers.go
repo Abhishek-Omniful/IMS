@@ -45,7 +45,7 @@ func CreateHub(c *gin.Context) {
 	err := c.ShouldBindBodyWithJSON(hub) //json bytes ->  struct (unmarshall)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to create hub",
+			"error": "Failed to parse request",
 		})
 		return
 	}
@@ -436,6 +436,89 @@ func DeleteProduct(c *gin.Context) {
 		"message": "Product deleted successfully",
 		"product": product,
 	})
+}
+
+// inventory
+func UpsertInventory(c *gin.Context) {
+	var inventory models.Inventory
+
+	if err := c.ShouldBindJSON(&inventory); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	err := models.UpsertInventory(&inventory)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upsert inventory"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Inventory upserted successfully"})
+}
+
+func GetInventoryByHub(c *gin.Context) {
+	hubIDStr := c.Query("hub_id")
+	hubID, err := strconv.ParseInt(hubIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid hub_id"})
+		return
+	}
+
+	inventory, err := models.GetInventoryByHub(hubID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory"})
+		return
+	}
+
+	c.JSON(http.StatusOK, inventory)
+}
+
+func GetInventoryBySKU(c *gin.Context) {
+	skuIDStr := c.Query("sku_id")
+	skuID, err := strconv.ParseInt(skuIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sku_id"})
+		return
+	}
+
+	inventory, err := models.GetInventoryBySKU(skuID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory"})
+		return
+	}
+
+	c.JSON(http.StatusOK, inventory)
+}
+
+func GetInventoryBySKUAndHub(c *gin.Context) {
+	skuIDStr := c.Query("sku_id")
+	hubIDStr := c.Query("hub_id")
+
+	skuID, err1 := strconv.ParseInt(skuIDStr, 10, 64)
+	hubID, err2 := strconv.ParseInt(hubIDStr, 10, 64)
+
+	if err1 != nil || err2 != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sku_id or hub_id"})
+		return
+	}
+
+	inv, err := models.GetInventoryBySKUAndHub(skuID, hubID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory"})
+		return
+	}
+
+	c.JSON(http.StatusOK, inv)
+}
+
+func GetAllInventory(c *gin.Context) {
+	inventory, err := models.GetAllInventory()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inventory"})
+		return
+	}
+
+	c.JSON(http.StatusOK, inventory)
 }
 
 // validate SKU and HUB

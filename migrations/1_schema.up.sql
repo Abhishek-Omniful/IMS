@@ -45,12 +45,10 @@ CREATE TABLE sellers (
 -- Create SKU Table
 CREATE TABLE skus (
     id BIGSERIAL PRIMARY KEY,
-    hub_id BIGINT NOT NULL REFERENCES hubs(id) ON DELETE CASCADE,
     seller_id BIGINT NOT NULL REFERENCES sellers(id) ON DELETE CASCADE,
     product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     images TEXT,
     description TEXT,
-    unit_price INTEGER NOT NULL CHECK (unit_price >= 0),
     fragile BOOLEAN DEFAULT FALSE,
     dimensions TEXT
 );
@@ -82,3 +80,15 @@ CREATE TABLE IF NOT EXISTS validation_responses (
     is_valid BOOLEAN NOT NULL,
     error TEXT
 );
+
+--  inventory
+CREATE TABLE inventory (
+    sku_id BIGINT NOT NULL,
+    hub_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+    unit_price INT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+    PRIMARY KEY (sku_id, hub_id),
+    FOREIGN KEY (sku_id) REFERENCES sku(id),
+    FOREIGN KEY (hub_id) REFERENCES hub(id)
+);
+

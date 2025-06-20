@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
 	"github.com/omniful/go_commons/db/sql/postgres"
 	"github.com/omniful/go_commons/redis"
+	"gorm.io/gorm"
 )
 
 type Category struct {
@@ -52,14 +54,19 @@ type Seller struct {
 
 type SKU struct {
 	ID          int64  `json:"id"`
-	HubID       int64  `json:"hub_id"`
 	SellerID    int64  `json:"seller_id"`
 	ProductID   int64  `json:"product_id"`
 	Images      string `json:"images"`
 	Description string `json:"description"`
-	UnitPrice   int    `json:"unit_price"`
 	Fragile     bool   `json:"fragile"`
 	Dimensions  string `json:"dimensions"`
+}
+
+type Inventory struct {
+	SKUID     int64 `json:"sku_id"`
+	HubID     int64 `json:"hub_id"`
+	Quantity  int   `json:"quantity"`   //check and deautl are put
+	UnitPrice int   `json:"unit_price"` //check and deautl are put
 }
 
 type Address struct {
@@ -284,6 +291,52 @@ func Validator(hubid int64, skuid int64) bool {
 		return false
 	}
 	return true
+}
+
+// inventory
+func UpsertInventory(inv *Inventory) error {
+	db := db.GetMasterDB(ctx)
+
+	// Try to find existing record
+	var existing Inventory
+	err := db.Where("sku_id = ? AND hub_id = ?", inv.SKUID, inv.HubID).First(&existing).Error
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		// Insert new record
+		return db.Create(inv).Error
+	}
+
+	// Update existing record
+	return db.Model(&Inventory{}).
+		Where("sku_id = ? AND hub_id = ?", inv.SKUID, inv.HubID).
+		Updates(map[string]interface{}{
+			"quantity":   inv.Quantity,
+			"unit_price": inv.UnitPrice,
+		}).Error
+}
+
+func GetInventoryByHub(hubID int64) ([]Inventory, error) {
+	var inventory []Inventory
+	err := db.GetMasterDB(ctx).Where("hub_id = ?", hubID).Find(&inventory).Error
+	return inventory, err
+}
+
+func GetInventoryBySKU(skuID int64) ([]Inventory, error) {
+	var inventory []Inventory
+	err := db.GetMasterDB(ctx).Where("sku_id = ?", skuID).Find(&inventory).Error
+	return inventory, err
+}
+
+func GetInventoryBySKUAndHub(skuID, hubID int64) (*Inventory, error) {
+	var inv Inventory
+	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuID, hubID).First(&inv).Error
+	return &inv, err
+}
+
+func GetAllInventory() (*[]Inventory, error) {
+	var inventory []Inventory
+	err := db.GetMasterDB(ctx).Find(&inventory).Error
+	return &inventory, err
 }
 
 // validate order

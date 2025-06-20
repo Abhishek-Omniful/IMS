@@ -58,6 +58,15 @@ func Initialize(s *http.Server) {
 			sellers.PUT("/:id", controllers.UpdateSeller)
 			sellers.DELETE("/:id", controllers.DeleteSeller)
 		}
+		// inventory
+		inventory := v1.Group("/inventory")
+		{
+			inventory.POST("/upsert", controllers.UpsertInventory)  // Atomic upsert
+			inventory.GET("/by-hub", controllers.GetInventoryByHub) // View inventory for a hub
+			inventory.GET("/by-sku", controllers.GetInventoryBySKU) // View inventory for a SKU
+			inventory.GET("/by-sku-hub", controllers.GetInventoryBySKUAndHub) // View inventory for a SKU in a specific hub
+			inventory.GET("", controllers.GetAllInventory) // View all inventory 
+		}
 
 	}
 
