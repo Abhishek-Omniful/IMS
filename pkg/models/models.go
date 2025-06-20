@@ -280,17 +280,13 @@ func DeleteProduct(id int64) (*Product, error) {
 }
 
 func Validator(hubid int64, skuid int64) bool {
-	var sku SKU
-	result := db.GetMasterDB(ctx).Where("id=? and hub_id=?", skuid, hubid).First(&sku)
-	if result.Error != nil {
-		log.Println("Error occred while validation of hub and sku")
-		return false
-	}
-	if sku == (SKU{}) {
-		log.Println("Invalid pair")
+	var inv Inventory
+	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuid, hubid).First(&inv).Error
+	if err != nil {
 		return false
 	}
 	return true
+	// Check if the inventory has sufficient quantity
 }
 
 // inventory
