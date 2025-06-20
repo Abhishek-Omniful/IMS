@@ -355,6 +355,24 @@ func ValidateOrder(order *ValidateOrderRequest) bool {
 	val, err := redisClient.Get(ctx, redisKey)
 	log.Println("Checking Redis for validation:", redisKey)
 	if err == nil && val == "valid" {
+
+		// check here if the hubid exits in hub and skuid exiets in sku if anyone of them does not exist then return false and delete this key from redis
+		var hub Hub
+		err := db.GetMasterDB(ctx).Where("id = ?", hubIDInt64).First(&hub).Error
+		if err != nil {
+			log.Println("Hub does not exist:", hubIDInt64)
+			redisClient.Del(ctx, redisKey)
+			return false
+		}
+
+		var sku SKU
+		err = db.GetMasterDB(ctx).Where("id = ?", skuIDInt64).First(&sku).Error
+		if err != nil {
+			log.Println("SKU does not exist:", skuIDInt64)
+			redisClient.Del(ctx, redisKey)
+			return false
+		}
+
 		log.Println("Order validated from Redis cache.")
 		return true
 	}
