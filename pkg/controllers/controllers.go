@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -374,6 +376,7 @@ func GetProducts(c *gin.Context) {
 
 func CreateProduct(c *gin.Context) {
 	var product = &models.Product{}
+	fmt.Println(product)
 	err := c.ShouldBindJSON(product)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind product JSON"})
@@ -457,7 +460,7 @@ func UpsertInventory(c *gin.Context) {
 }
 
 func GetInventoryByHub(c *gin.Context) {
-	hubIDStr := c.Query("hub_id")
+	hubIDStr := c.Param("hub_id")
 	hubID, err := strconv.ParseInt(hubIDStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid hub_id"})
@@ -474,7 +477,7 @@ func GetInventoryByHub(c *gin.Context) {
 }
 
 func GetInventoryBySKU(c *gin.Context) {
-	skuIDStr := c.Query("sku_id")
+	skuIDStr := c.Param("sku_id")
 	skuID, err := strconv.ParseInt(skuIDStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sku_id"})
@@ -491,8 +494,8 @@ func GetInventoryBySKU(c *gin.Context) {
 }
 
 func GetInventoryBySKUAndHub(c *gin.Context) {
-	skuIDStr := c.Query("sku_id")
-	hubIDStr := c.Query("hub_id")
+	skuIDStr := c.Param("sku_id")
+	hubIDStr := c.Param("hub_id")
 
 	skuID, err1 := strconv.ParseInt(skuIDStr, 10, 64)
 	hubID, err2 := strconv.ParseInt(hubIDStr, 10, 64)
@@ -521,19 +524,46 @@ func GetAllInventory(c *gin.Context) {
 	c.JSON(http.StatusOK, inventory)
 }
 
+func CheckInventoryStatus(c *gin.Context) {
+	skuIDStr := c.Query("sku_id")
+	hubIDStr := c.Query("hub_id")
+	quantityStr := c.Query("quantity")
+
+	skuID, err1 := strconv.ParseInt(skuIDStr, 10, 64)
+	hubID, err2 := strconv.ParseInt(hubIDStr, 10, 64)
+	quantity, err3 := strconv.Atoi(quantityStr)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parsing error for sku_id, hub_id or quantity"})
+		return
+	}
+	log.Println("Checking inventory for SKU:", skuID, "Hub:", hubID, "Quantity:", quantity)
+	isAvailable := models.CheckInventoryStatus(skuID, hubID, quantity)
+	
+	if isAvailable {
+		c.JSON(http.StatusOK, gin.H{"IsValid": true, "message": "Inventory is available"})
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{"IsValid": false, "message": "Inventory is not available"})
+	}
+}
+
 // validate SKU and HUB
 func ValidateOrderRequest(c *gin.Context) {
-	var skusAndHubs = models.ValidateOrderRequest{}
 	var validationResponse = &models.ValidationResponse{}
+	skuIDStr := c.Param("sku_id")
+	hubIDStr := c.Param("hub_id")
 
-	err := c.ShouldBindBodyWithJSON(&skusAndHubs) //json bytes ->  struct (unmarshall)
-	if err != nil {
+	skuID, err1 := strconv.ParseInt(skuIDStr, 10, 64)
+	hubID, err2 := strconv.ParseInt(hubIDStr, 10, 64)
+
+	if err1 != nil || err2 != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to parse request ",
+			"error": "Unable to parse sku_id or hub_id",
 		})
 		return
 	}
-	isValidOrder := models.ValidateOrder(&skusAndHubs)
+
+	isValidOrder := models.ValidateOrder(hubID, skuID)
 
 	if !isValidOrder {
 		validationResponse.IsValid = false
@@ -547,9 +577,7 @@ func ValidateOrderRequest(c *gin.Context) {
 
 	validationResponse.IsValid = true
 	validationResponse.Error = nil
-	c.JSON(http.StatusOK, gin.H{
-		"message":            "Order validation successful",
-		"validationResponse": validationResponse,
-	})
+	log.Println("Order validation successful for SKU:", skuID, "and Hub:", hubID, "and is valid:", validationResponse.IsValid)
+	c.JSON(http.StatusOK, gin.H{"IsValid": true})
 
 }

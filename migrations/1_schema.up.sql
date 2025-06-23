@@ -1,15 +1,10 @@
--- Create Category Table
-CREATE TABLE categories (
-    id BIGSERIAL PRIMARY KEY,
-    category_name TEXT NOT NULL
-);
+
 
 -- Create Product Table
 CREATE TABLE products (
     id BIGSERIAL PRIMARY KEY,
     product_name TEXT NOT NULL,
     general_description TEXT,
-    category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
     seller_id BIGINT NOT NULL REFERENCES sellers(id) ON DELETE CASCADE
 );
 
@@ -81,14 +76,16 @@ CREATE TABLE IF NOT EXISTS validation_responses (
     error TEXT
 );
 
---  inventory
-CREATE TABLE inventory (
+--  inventories
+
+
+CREATE TABLE inventories (
     sku_id BIGINT NOT NULL,
     hub_id BIGINT NOT NULL,
     quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
     unit_price INT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
     PRIMARY KEY (sku_id, hub_id),
-    FOREIGN KEY (sku_id) REFERENCES sku(id),
-    FOREIGN KEY (hub_id) REFERENCES hub(id)
+    FOREIGN KEY (sku_id) REFERENCES skus(id),
+    FOREIGN KEY (hub_id) REFERENCES hubs(id)
 );
 

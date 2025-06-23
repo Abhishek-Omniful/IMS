@@ -13,7 +13,7 @@ func Initialize(s *http.Server) {
 		//validators
 		orders := v1.Group("/validators")
 		{
-			orders.POST("/validate_order", controllers.ValidateOrderRequest)
+			orders.GET("/validate_order/:sku_id/:hub_id", controllers.ValidateOrderRequest)
 			orders.POST("/validate_inventory", controllers.ValidateAndUpdateInventory)
 		}
 		//hubs
@@ -61,11 +61,12 @@ func Initialize(s *http.Server) {
 		// inventory
 		inventory := v1.Group("/inventory")
 		{
-			inventory.POST("/upsert", controllers.UpsertInventory)  // Atomic upsert
-			inventory.GET("/by-hub", controllers.GetInventoryByHub) // View inventory for a hub
-			inventory.GET("/by-sku", controllers.GetInventoryBySKU) // View inventory for a SKU
-			inventory.GET("/by-sku-hub", controllers.GetInventoryBySKUAndHub) // View inventory for a SKU in a specific hub
-			inventory.GET("", controllers.GetAllInventory) // View all inventory 
+			inventory.POST("/upsert", controllers.UpsertInventory)                 // Atomic upsert
+			inventory.GET("/by-hub/:hub_id", controllers.GetInventoryByHub)        // View inventory for a hub
+			inventory.GET("/by-sku/:sku_id", controllers.GetInventoryBySKU)        // View inventory for a SKU
+			inventory.GET("/:sku_id/:hub_id", controllers.GetInventoryBySKUAndHub) // View inventory for a SKU in a specific hub
+			inventory.GET("", controllers.GetAllInventory)                         // View all inventory
+			inventory.GET("/check", controllers.CheckInventoryStatus)              // Check inventory status
 		}
 
 	}
