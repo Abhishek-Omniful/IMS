@@ -57,6 +57,7 @@ type SKU struct {
 }
 
 type Inventory struct {
+	TenantID int64 `json:"tenant_id"`  //added 
 	SkuID     int64 `json:"sku_id"`
 	HubID     int64 `json:"hub_id"`
 	Quantity  int   `json:"quantity"`   //check and deautl are put

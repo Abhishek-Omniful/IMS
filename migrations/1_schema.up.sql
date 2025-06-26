@@ -78,13 +78,14 @@ CREATE TABLE IF NOT EXISTS validation_responses (
 
 --  inventories
 
-
 CREATE TABLE inventories (
+    tenant_id BIGINT NOT NULL,
     sku_id BIGINT NOT NULL,
     hub_id BIGINT NOT NULL,
     quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
     unit_price INT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-    PRIMARY KEY (sku_id, hub_id),
+    PRIMARY KEY (tenant_id, sku_id, hub_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
     FOREIGN KEY (sku_id) REFERENCES skus(id),
     FOREIGN KEY (hub_id) REFERENCES hubs(id)
 );
