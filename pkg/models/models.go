@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Abhishek-Omniful/IMS/mycontext"
-	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
+	"github.com/Abhishek-Omniful/IMS/pkg/services"
 	"github.com/omniful/go_commons/db/sql/postgres"
 	"github.com/omniful/go_commons/log"
 	"github.com/omniful/go_commons/redis"
@@ -93,15 +93,9 @@ var logger *log.Logger
 
 func init() {
 	logger = log.DefaultLogger()
-	db = appinit.GetDB()
-	if db == nil {
-		logger.Errorf("Failed to connect to the database")
-	}
-	logger.Infof("Connected to the database successfully")
-
+	db = services.GetDB()
+	redisClient = services.GetRedis()
 	ctx = mycontext.GetContext()
-	redisClient = appinit.GetRedis()
-	logger.Infof("Connected to Redis successfully")
 }
 
 // hubs

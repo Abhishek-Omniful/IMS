@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	imsinit "github.com/Abhishek-Omniful/IMS/init"
 	"github.com/Abhishek-Omniful/IMS/mycontext"
 
 	"github.com/Abhishek-Omniful/IMS/pkg/middlewares"
@@ -14,7 +15,7 @@ import (
 func main() {
 
 	ctx := mycontext.GetContext()
-
+	imsinit.Initialize()
 	server := http.InitializeServer(
 		config.GetString(ctx, "server.port"),            // Port to listen
 		config.GetDuration(ctx, "server.read_timeout"),  // Read timeout

@@ -3,6 +3,12 @@ module github.com/Abhishek-Omniful/IMS
 go 1.24.3
 
 require (
+	github.com/gin-gonic/gin v1.10.1
+	github.com/omniful/go_commons v0.6.22
+	gorm.io/gorm v1.24.2
+)
+
+require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.28.1 // indirect
@@ -26,7 +32,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.10.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.26.0 // indirect
@@ -57,7 +62,6 @@ require (
 	github.com/newrelic/go-agent/v3 v3.38.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrpq v1.1.1 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrredis-v8 v1.0.0 // indirect
-	github.com/omniful/go_commons v0.6.22 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
@@ -76,5 +80,4 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/postgres v1.4.5 // indirect
-	gorm.io/gorm v1.24.2 // indirect
 )

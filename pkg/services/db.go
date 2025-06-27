@@ -1,4 +1,4 @@
-package appinit
+package services
 
 import (
 	"time"
@@ -7,12 +7,12 @@ import (
 	"github.com/omniful/go_commons/config"
 	"github.com/omniful/go_commons/db/sql/postgres"
 	"github.com/omniful/go_commons/log"
-	"github.com/omniful/go_commons/redis"
 )
 
 var logger = log.DefaultLogger()
+var db *postgres.DbCluster
 
-func ConnectDB() *postgres.DbCluster {
+func ConnectDB() {
 	ctx := mycontext.GetContext()
 	myHost := config.GetString(ctx, "postgresql.master.host")
 	myPort := config.GetString(ctx, "postgresql.master.port")
@@ -38,27 +38,10 @@ func ConnectDB() *postgres.DbCluster {
 
 	slavesConfig := make([]postgres.DBConfig, 0)
 
-	db := postgres.InitializeDBInstance(masterConfig, &slavesConfig)
+	db = postgres.InitializeDBInstance(masterConfig, &slavesConfig)
 	logger.Info("Connecting to the database...")
-	return db
-}
-
-func ConnectRedis() *redis.Client {
-	config := &redis.Config{
-		Hosts:       []string{"127.0.0.1:6379"},
-		PoolSize:    50,
-		MinIdleConn: 10,
-		DB:          0,
-	}
-	client := redis.NewClient(config)
-	logger.Info("Connecting to Redis...")
-	return client
 }
 
 func GetDB() *postgres.DbCluster {
-	return ConnectDB()
-}
-
-func GetRedis() *redis.Client {
-	return ConnectRedis()
+	return db
 }
