@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/Abhishek-Omniful/IMS/mycontext"
 	"github.com/Abhishek-Omniful/IMS/pkg/appinit"
 	"github.com/omniful/go_commons/db/sql/postgres"
+	"github.com/omniful/go_commons/log"
 	"github.com/omniful/go_commons/redis"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -57,11 +57,11 @@ type SKU struct {
 }
 
 type Inventory struct {
-	TenantID int64 `json:"tenant_id"`  //added 
+	TenantID  int64 `json:"tenant_id"`
 	SkuID     int64 `json:"sku_id"`
 	HubID     int64 `json:"hub_id"`
-	Quantity  int   `json:"quantity"`   //check and deautl are put
-	UnitPrice int   `json:"unit_price"` //check and deautl are put
+	Quantity  int   `json:"quantity"`
+	UnitPrice int   `json:"unit_price"`
 }
 
 type Address struct {
@@ -89,19 +89,19 @@ type ValidationResponse struct {
 var db *postgres.DbCluster
 var ctx context.Context
 var redisClient *redis.Client
+var logger *log.Logger
 
 func init() {
+	logger = log.DefaultLogger()
 	db = appinit.GetDB()
 	if db == nil {
-		log.Panic("Failed to connect to the database")
+		logger.Errorf("Failed to connect to the database")
 	}
-	log.Println("Connected to the database successfully")
-	// migrations.RunMigration() only once
+	logger.Infof("Connected to the database successfully")
 
 	ctx = mycontext.GetContext()
-
 	redisClient = appinit.GetRedis()
-	log.Println("Connected to Redis successfully")
+	logger.Infof("Connected to Redis successfully")
 }
 
 // hubs
@@ -109,7 +109,6 @@ func GetHubs() (*[]Hub, error) {
 	var hubs []Hub
 	result := db.GetMasterDB(ctx).Find(&hubs)
 	return &hubs, result.Error
-
 }
 
 func CreateHub(hub *Hub) (*Hub, error) {
@@ -211,13 +210,11 @@ func GetSellers() (*[]Seller, error) {
 	return &sellers, result.Error
 }
 
-// CreateSeller creates a new seller
 func CreateSeller(seller *Seller) (*Seller, error) {
 	result := db.GetMasterDB(ctx).Create(seller)
 	return seller, result.Error
 }
 
-// UpdateSeller updates an existing seller
 func UpdateSeller(seller *Seller) (*Seller, error) {
 	result := db.GetMasterDB(ctx).Save(seller)
 	if result.Error != nil {
@@ -226,7 +223,6 @@ func UpdateSeller(seller *Seller) (*Seller, error) {
 	return seller, nil
 }
 
-// DeleteSeller deletes a seller by ID
 func DeleteSeller(id int64) (*Seller, error) {
 	var seller Seller
 	result := db.GetMasterDB(ctx).Where("id = ?", id).Find(&seller)
@@ -239,8 +235,6 @@ func DeleteSeller(id int64) (*Seller, error) {
 	}
 	return &seller, nil
 }
-
-//products
 
 func GetProducts() (*[]Product, error) {
 	var products []Product
@@ -274,20 +268,15 @@ func DeleteProduct(id int64) (*Product, error) {
 	return &product, nil
 }
 
-// inventory
+// -- Inventory --
+
 func UpsertInventory(inv *Inventory) error {
 	db := db.GetMasterDB(ctx)
-
-	// Try to find existing record
 	var existing Inventory
 	err := db.Where("sku_id = ? AND hub_id = ?", inv.SkuID, inv.HubID).First(&existing).Error
-
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		// Insert new record
 		return db.Create(inv).Error
 	}
-
-	// Update existing record
 	return db.Model(&Inventory{}).
 		Where("sku_id = ? AND hub_id = ?", inv.SkuID, inv.HubID).
 		Updates(map[string]interface{}{
@@ -321,46 +310,33 @@ func GetAllInventory() (*[]Inventory, error) {
 }
 
 func UpdateInventoryQuantity(skuID, hubID int64, quantityToDeduct int) error {
-	log.Println("Updating inventory quantity for SKU:", skuID, "in Hub:", hubID, "by quantity:", quantityToDeduct)
+	logger.Infof("Updating inventory quantity for SKU: %d in Hub: %d by quantity: %d", skuID, hubID, quantityToDeduct)
 	var inv Inventory
-
-	// Start a transaction to avoid race conditions
 	tx := db.GetMasterDB(ctx).Begin()
-
-	// Lock the selected inventory row for update (pessimistic locking)
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("sku_id = ? AND hub_id = ?", skuID, hubID).
 		First(&inv).Error
-
 	if err != nil {
-		log.Println("Error fetching inventory:", err)
+		logger.Errorf("Error fetching inventory: %v", err)
 		tx.Rollback()
 		return err
 	}
-
-	// Deduct the quantity
 	inv.Quantity -= quantityToDeduct
-
-	err = tx.Model(&Inventory{}).
+	_ = tx.Model(&Inventory{}).
 		Where("sku_id = ? AND hub_id = ?", skuID, hubID).
 		Updates(map[string]interface{}{"quantity": inv.Quantity}).Error
-
-	log.Printf("Inventory updated successfully ")
-	return tx.Commit().Error //automatic lock is release here
+	logger.Infof("Inventory updated successfully for SKU: %d in Hub: %d", skuID, hubID)
+	return tx.Commit().Error
 }
 
 func CheckInventoryStatus(skuID, hubID int64, quantityDemanded int) bool {
 	var inv Inventory
 	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuID, hubID).First(&inv).Error
-	if err != nil {
+	if err != nil || inv.Quantity < quantityDemanded {
 		return false
 	}
-	if inv.Quantity < quantityDemanded {
-		return false
-	}
-	log.Printf("Inventory check passed for SKU %d in Hub %d: Available Quantity = %d, Required Quantity = %d", skuID, hubID, inv.Quantity, quantityDemanded)
+	logger.Infof("Inventory check passed for SKU %d in Hub %d: Available Quantity = %d, Required Quantity = %d", skuID, hubID, inv.Quantity, quantityDemanded)
 	UpdateInventoryQuantity(skuID, hubID, quantityDemanded)
-	// If the inventory is sufficient, update the quantity
 	return true
 }
 
@@ -370,53 +346,41 @@ func Validator(hubid int64, skuid int64) bool {
 	return err == nil
 }
 
-// validate order
 func ValidateOrder(hubID int64, skuID int64) bool {
-
-	// Compose a Redis key like "hub:123:sku:456"
 	redisKey := fmt.Sprintf("hub:%d:sku:%d", hubID, skuID)
-
-	// Check in Redis
 	val, err := redisClient.Get(ctx, redisKey)
-	log.Println("Checking Redis for validation:", redisKey)
+	logger.Infof("Checking Redis for validation: %s", redisKey)
 	if err == nil && val == "valid" {
-
-		// check here if the hubid exits in hub and skuid exiets in sku if anyone of them does not exist then return false and delete this key from redis
 		var hub Hub
 		err := db.GetMasterDB(ctx).Where("id = ?", hubID).First(&hub).Error
 		if err != nil {
-			log.Println("Hub does not exist:", hubID)
+			logger.Warnf("Hub does not exist: %d", hubID)
 			redisClient.Del(ctx, redisKey)
 			return false
 		}
-
 		var sku SKU
 		err = db.GetMasterDB(ctx).Where("id = ?", skuID).First(&sku).Error
 		if err != nil {
-			log.Println("SKU does not exist:", skuID)
+			logger.Warnf("SKU does not exist: %d", skuID)
 			redisClient.Del(ctx, redisKey)
 			return false
 		}
-
-		log.Println("Order validated from Redis cache.")
+		logger.Infof("Order validated from Redis cache.")
 		return true
 	}
-
 	isValid := Validator(hubID, skuID)
-
 	if isValid {
 		storeRedis(hubID, skuID)
 		return true
 	}
 	return false
-
 }
 
 func storeRedis(hubID int64, skuID int64) {
 	key := fmt.Sprintf("hub:%d:sku:%d", hubID, skuID)
 	ok, err := redisClient.Set(ctx, key, "valid", 0)
 	if err != nil || !ok {
-		log.Panicf("Failed to store validation for hub %d and sku %d in Redis", hubID, skuID)
+		logger.Errorf("Failed to store validation for hub %d and sku %d in Redis: %v", hubID, skuID, err)
 	}
-	log.Printf("Stored validation for hub %d and sku %d in Redis", hubID, skuID)
+	logger.Infof("Stored validation for hub %d and sku %d in Redis", hubID, skuID)
 }

@@ -1,14 +1,16 @@
 package appinit
 
 import (
-	"log"
 	"time"
 
 	"github.com/Abhishek-Omniful/IMS/mycontext"
 	"github.com/omniful/go_commons/config"
 	"github.com/omniful/go_commons/db/sql/postgres"
+	"github.com/omniful/go_commons/log"
 	"github.com/omniful/go_commons/redis"
 )
+
+var logger = log.DefaultLogger()
 
 func ConnectDB() *postgres.DbCluster {
 	ctx := mycontext.GetContext()
@@ -33,12 +35,11 @@ func ConnectDB() *postgres.DbCluster {
 		MaxIdleConnections: maxIdleConns,
 		DebugMode:          debugMode,
 	}
-	// Initialize slavesConfig as an empty slice
-	// they can be added later if needed
-	slavesConfig := make([]postgres.DBConfig, 0) // read replicas
+
+	slavesConfig := make([]postgres.DBConfig, 0)
 
 	db := postgres.InitializeDBInstance(masterConfig, &slavesConfig)
-	log.Println("Connecting to the database...")
+	logger.Info("Connecting to the database...")
 	return db
 }
 
@@ -50,16 +51,14 @@ func ConnectRedis() *redis.Client {
 		DB:          0,
 	}
 	client := redis.NewClient(config)
-	log.Println("Connecting to Redis...")
+	logger.Info("Connecting to Redis...")
 	return client
 }
 
 func GetDB() *postgres.DbCluster {
-	db := ConnectDB()
-	return db
+	return ConnectDB()
 }
 
 func GetRedis() *redis.Client {
-	rds := ConnectRedis()
-	return rds
+	return ConnectRedis()
 }
