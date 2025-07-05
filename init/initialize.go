@@ -1,7 +1,8 @@
 package init
 
 import (
-	"github.com/Abhishek-Omniful/IMS/pkg/services"
+	dbService "github.com/Abhishek-Omniful/IMS/pkg/integrations/db"
+	redisService "github.com/Abhishek-Omniful/IMS/pkg/integrations/redis"
 	"github.com/omniful/go_commons/log"
 )
 
@@ -9,9 +10,9 @@ var logger *log.Logger
 
 func init() {
 	logger = log.DefaultLogger()
-	services.ConnectDB()
+	dbService.ConnectDB()
 	logger.Infof("Connected to the database successfully")
-	services.ConnectRedis()
+	redisService.ConnectRedis()
 	logger.Infof("Connected to Redis successfully")
 }
 

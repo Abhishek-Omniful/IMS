@@ -1,10 +1,12 @@
-package services
+package redisService
 
 import (
+	"github.com/omniful/go_commons/log"
 	"github.com/omniful/go_commons/redis"
 )
 
 var redisClient *redis.Client
+var logger = log.DefaultLogger()
 
 func ConnectRedis() {
 	config := &redis.Config{

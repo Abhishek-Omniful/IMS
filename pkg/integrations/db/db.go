@@ -1,4 +1,4 @@
-package services
+package dbService
 
 import (
 	"time"

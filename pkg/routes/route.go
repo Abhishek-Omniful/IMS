@@ -14,7 +14,6 @@ func Initialize(s *http.Server) {
 		orders := v1.Group("/validators")
 		{
 			orders.GET("/validate_order/:sku_id/:hub_id", controllers.ValidateOrderRequest)
-			orders.POST("/validate_inventory", controllers.ValidateAndUpdateInventory)
 		}
 
 		//hubs
