@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	//"fmt"
 	"strconv"
 
 	"github.com/Abhishek-Omniful/IMS/pkg/models"
@@ -9,6 +10,7 @@ import (
 )
 
 func GetHubs(c *gin.Context) {
+	//fmt.Println("1")
 	hubs, err := models.GetHubs()
 	if err != nil {
 		logger.Error("Failed to fetch hubs", err)
@@ -19,6 +21,7 @@ func GetHubs(c *gin.Context) {
 }
 
 func CreateHub(c *gin.Context) {
+
 	var hub = &models.Hub{}
 	if err := c.ShouldBindJSON(hub); err != nil {
 		c.JSON(400, gin.H{"error": i18n.Translate(c, "Failed to parse request")})

@@ -8,7 +8,7 @@ func isValidHubSKUPair(hubid int64, skuid int64) bool {
 	return err == nil
 }
 
-func ValidateOrderByHubAndSKU(hubID int64, skuID int64) bool {
+var ValidateOrderByHubAndSKU = func(hubID int64, skuID int64) bool {
 	redisKey := fmt.Sprintf("hub:%d:sku:%d", hubID, skuID)
 	val, err := redisClient.Get(ctx, redisKey)
 	logger.Infof("Checking Redis for validation: %s", redisKey)

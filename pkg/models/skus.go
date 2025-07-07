@@ -1,18 +1,18 @@
 package models
 
 // skus
-func GetSKUs() (*[]SKU, error) {
+var GetSKUs = func() (*[]SKU, error) {
 	var skus []SKU
 	result := db.GetMasterDB(ctx).Find(&skus)
 	return &skus, result.Error
 }
 
-func CreateSKU(sku *SKU) (*SKU, error) {
+var CreateSKU = func(sku *SKU) (*SKU, error) {
 	result := db.GetMasterDB(ctx).Create(sku)
 	return sku, result.Error
 }
 
-func DeleteSKU(id int64) (*SKU, error) {
+var DeleteSKU = func(id int64) (*SKU, error) {
 	var sku SKU
 	result := db.GetMasterDB(ctx).Where("id = ?", id).Find(&sku)
 	if result.Error != nil {
@@ -25,7 +25,7 @@ func DeleteSKU(id int64) (*SKU, error) {
 	return &sku, result.Error
 }
 
-func UpdateSKU(sku *SKU) (*SKU, error) {
+var UpdateSKU = func(sku *SKU) (*SKU, error) {
 	result := db.GetMasterDB(ctx).Save(sku)
 	if result.Error != nil {
 		return nil, result.Error

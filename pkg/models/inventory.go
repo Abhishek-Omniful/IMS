@@ -9,7 +9,7 @@ import (
 
 // -- Inventory --
 
-func UpsertInventory(inv *Inventory) error {
+var UpsertInventory = func(inv *Inventory) error {
 	db := db.GetMasterDB(ctx)
 	var existing Inventory
 	err := db.Where("sku_id = ? AND hub_id = ?", inv.SkuID, inv.HubID).First(&existing).Error
@@ -24,31 +24,31 @@ func UpsertInventory(inv *Inventory) error {
 		}).Error
 }
 
-func GetInventoryByHub(hubID int64) ([]Inventory, error) {
+var GetInventoryByHub = func(hubID int64) ([]Inventory, error) {
 	var inventory []Inventory
 	err := db.GetMasterDB(ctx).Where("hub_id = ?", hubID).Find(&inventory).Error
 	return inventory, err
 }
 
-func GetInventoryBySKU(skuID int64) ([]Inventory, error) {
+var GetInventoryBySKU = func(skuID int64) ([]Inventory, error) {
 	var inventory []Inventory
 	err := db.GetMasterDB(ctx).Where("sku_id = ?", skuID).Find(&inventory).Error
 	return inventory, err
 }
 
-func GetInventoryBySKUAndHub(skuID, hubID int64) (*Inventory, error) {
+var GetInventoryBySKUAndHub = func(skuID, hubID int64) (*Inventory, error) {
 	var inv Inventory
 	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuID, hubID).First(&inv).Error
 	return &inv, err
 }
 
-func GetAllInventory() (*[]Inventory, error) {
+var GetAllInventory = func() (*[]Inventory, error) {
 	var inventory []Inventory
 	err := db.GetMasterDB(ctx).Find(&inventory).Error
 	return &inventory, err
 }
 
-func UpdateInventoryQuantity(skuID, hubID int64, quantityToDeduct int) error {
+var UpdateInventoryQuantity = func(skuID, hubID int64, quantityToDeduct int) error {
 	logger.Infof("Updating inventory quantity for SKU: %d in Hub: %d by quantity: %d", skuID, hubID, quantityToDeduct)
 	var inv Inventory
 	tx := db.GetMasterDB(ctx).Begin()
@@ -68,7 +68,7 @@ func UpdateInventoryQuantity(skuID, hubID int64, quantityToDeduct int) error {
 	return tx.Commit().Error
 }
 
-func CheckInventoryStatus(skuID, hubID int64, quantityDemanded int) bool {
+var CheckInventoryStatus = func(skuID, hubID int64, quantityDemanded int) bool {
 	var inv Inventory
 	err := db.GetMasterDB(ctx).Where("sku_id = ? AND hub_id = ?", skuID, hubID).First(&inv).Error
 	if err != nil || inv.Quantity < quantityDemanded {
