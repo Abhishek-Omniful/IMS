@@ -21,7 +21,6 @@ type MockHubModel struct {
 }
 
 func (m *MockHubModel) GetHubs() (*[]models.Hub, error) {
-	//fmt.Println("2")
 	args := m.Called()
 	var res *[]models.Hub
 	if tmp := args.Get(0); tmp != nil {

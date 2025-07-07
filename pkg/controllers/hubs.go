@@ -10,7 +10,6 @@ import (
 )
 
 func GetHubs(c *gin.Context) {
-	//fmt.Println("1")
 	hubs, err := models.GetHubs()
 	if err != nil {
 		logger.Error("Failed to fetch hubs", err)
